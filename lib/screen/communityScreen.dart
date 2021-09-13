@@ -13,7 +13,6 @@ class CommunityScreen extends StatefulWidget {
 
 class _CommunityScreenState extends State<CommunityScreen>
     with SingleTickerProviderStateMixin {
-  var refreshKey = GlobalKey<RefreshIndicatorState>();
   TextEditingController editingController = TextEditingController();
   final List<Tab> myTabs = <Tab>[
     Tab(text: '전체'),
@@ -28,7 +27,7 @@ class _CommunityScreenState extends State<CommunityScreen>
   @override
   void initState() {
     super.initState();
-    refreshList();
+
     _tabController = TabController(vsync: this, length: myTabs.length);
   }
 
@@ -79,13 +78,5 @@ class _CommunityScreenState extends State<CommunityScreen>
         backgroundColor: Color(0xFF0DCE9F),
       ),
     );
-  }
-
-  Future<Null> refreshList() async {
-    refreshKey.currentState?.show(atTop: false);
-    await Future.delayed(Duration(seconds: 0)); //thread sleep 같은 역할을 함.
-    //새로운 정보를 그려내는 곳
-
-    return null;
   }
 }

@@ -15,7 +15,7 @@ class _AllScreen extends State<AllScreen> {
 
   var mainText = []..length = 100;
   var createTime = []..length = 100;
-
+  var refreshKey = GlobalKey<RefreshIndicatorState>();
   int i = 0;
 
   @override
@@ -25,7 +25,15 @@ class _AllScreen extends State<AllScreen> {
 
     _database = FirebaseDatabase(databaseURL: _databaseURL);
     reference = _database.reference();
+    refreshList();
+  }
+
+  Future<Null> refreshList() async {
+    refreshKey.currentState?.show(atTop: false);
+    await Future.delayed(Duration(seconds: 0)); //thread sleep 같은 역할을 함.
+    //새로운 정보를 그려내는 곳
     _dataList();
+    return null;
   }
 
 //title.iterator.moveNext()
@@ -34,7 +42,11 @@ class _AllScreen extends State<AllScreen> {
     return title.first == null
         ? Center(
             child: Center(child: Center(child: CircularProgressIndicator())))
-        : _listTile();
+        : RefreshIndicator(
+            key: refreshKey,
+            child: _listTile(),
+            onRefresh: refreshList,
+          );
   }
 
   Widget _listTile() {
@@ -45,7 +57,7 @@ class _AllScreen extends State<AllScreen> {
           elevation: 0.0,
           margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
           child: title[index] == null
-              ? Container()
+              ? null
               : Column(children: [
                   ListTile(
                     contentPadding: EdgeInsets.fromLTRB(15, 5, 0, 5),
@@ -64,59 +76,67 @@ class _AllScreen extends State<AllScreen> {
   void _dataList() {
     reference.child('인기게시글').once().then((DataSnapshot snapshot) {
       snapshot.value.forEach((key, values) {
-        setState(() {
-          if (title.length >= i) {
-            title[i] = values['title'];
-            mainText[i] = values['mainText'];
-            createTime[i] = values['createTime'].toString().substring(11, 19);
-            i = i + 1;
-          } else {
-            return;
-          }
-        });
+        if (this.mounted) {
+          setState(() {
+            if (title.length >= i) {
+              title[i] = values['title'];
+              mainText[i] = values['mainText'];
+              createTime[i] = values['createTime'].toString().substring(11, 19);
+              i = i + 1;
+            } else {
+              return;
+            }
+          });
+        }
       });
     });
 
     reference.child('자유게시판').once().then((DataSnapshot snapshot) {
       snapshot.value.forEach((key, values) {
-        setState(() {
-          if (title.length >= i) {
-            title[i] = values['title'];
-            mainText[i] = values['mainText'];
-            createTime[i] = values['createTime'].toString().substring(11, 19);
-            i = i + 1;
-          } else {
-            return;
-          }
-        });
+        if (this.mounted) {
+          setState(() {
+            if (title.length >= i) {
+              title[i] = values['title'];
+              mainText[i] = values['mainText'];
+              createTime[i] = values['createTime'].toString().substring(11, 19);
+              i = i + 1;
+            } else {
+              return;
+            }
+          });
+        }
       });
     });
     reference.child('정보공유').once().then((DataSnapshot snapshot) {
       snapshot.value.forEach((key, values) {
-        setState(() {
-          if (title.length >= i) {
-            title[i] = values['title'];
-            mainText[i] = values['mainText'];
-            createTime[i] = values['createTime'].toString().substring(11, 19);
-            i = i + 1;
-          } else {
-            return;
-          }
-        });
+        if (this.mounted) {
+          setState(() {
+            if (title.length >= i) {
+              title[i] = values['title'];
+              mainText[i] = values['mainText'];
+              createTime[i] = values['createTime'].toString().substring(11, 19);
+              i = i + 1;
+            } else {
+              return;
+            }
+          });
+        }
       });
     });
     reference.child('작품').once().then((DataSnapshot snapshot) {
       snapshot.value.forEach((key, values) {
-        setState(() {
-          if (title.length >= i) {
-            title[i] = values['title'];
-            mainText[i] = values['mainText'];
-            createTime[i] = values['createTime'].toString().substring(11, 19);
-            i = i + 1;
-          } else {
-            return;
-          }
-        });
+        if (this.mounted) {
+          setState(() {
+            if (title.length >= i) {
+              title[i] = values['title'];
+              mainText[i] = values['mainText'];
+              createTime[i] = values['createTime'].toString().substring(11, 19);
+              i = i + 1;
+            } else {
+              return;
+            }
+          });
+        }
       });
     });
   }

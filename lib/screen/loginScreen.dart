@@ -1,17 +1,18 @@
 // Flutter
-import 'package:firebase_database/ui/firebase_animated_list.dart';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:crypto/crypto.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+
 import 'package:stone_bridge_app/login_state/loginController.dart';
 
 // 스톤브릿지
 import 'package:stone_bridge_app/login_state/sign.dart';
 import 'package:stone_bridge_app/login_state/user.dart';
+import 'package:stone_bridge_app/main.dart';
 import 'package:stone_bridge_app/screen/profileScreen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -23,12 +24,7 @@ class _LoginScreen extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   late FirebaseDatabase _database;
   late DatabaseReference reference;
-  String _databaseURL = 'https://login-9dc0b-default-rtdb.firebaseio.com/';
-
-  var id = "lt";
-  var pw = "123";
-
-  var _idquery = "a";
+  String _databaseURL = 'https://login-70221-default-rtdb.firebaseio.com/';
 
   late TextEditingController _idTextController;
   late TextEditingController _pwTextController;
@@ -45,55 +41,22 @@ class _LoginScreen extends State<LoginScreen>
     reference = _database.reference();
   }
 
-  Future<void> _check() async {
-    await reference
+  void _check() {
+    reference
         .child(_idTextController.value.text)
         .once()
         .then((DataSnapshot snapshot) {
-      print(snapshot.value);
-      snapshot.value.forEach((key, values) {});
+      print(snapshot.value['pw']);
+      if (snapshot.value['pw'] == _pwTextController.value.text) {
+        Get.find<LoginController>().inLogin();
+        Get.find<LoginController>().isProfile(
+            snapshot.value['id'],
+            snapshot.value['name'],
+            snapshot.value['grade'],
+            snapshot.value['school']);
+        Get.offAll(StoneBridge());
+      }
     });
-  }
-
-  Future<void> _chech3() async {
-    setState(() {
-      reference = _database.reference().child(_idTextController.value.text);
-    });
-  }
-
-  Future<void> _check1() async {
-    if (_idTextController.value.text.length == 0 ||
-        _pwTextController.value.text.length == 0) {
-      print('빈칸');
-      makeDialog('빈칸이 있습니다');
-    } else if (_idTextController.value.text.length > 0 &&
-        _pwTextController.value.text.length > 0) {
-      print('아이디가 없습니다3');
-      await reference
-          .child(_idTextController.value.text)
-          .onValue
-          .listen((event) {
-        if (event.snapshot.value == null) {
-          print('아이디가 없습니다');
-        } else {
-          print('아이디가 없습니다2');
-          reference
-              .child(_idTextController.value.text)
-              .onChildAdded
-              .listen((event) {
-            Load user = Load.fromSnapshot(event.snapshot);
-            var bytes = utf8.encode(_pwTextController.value.text);
-            var digest = sha1.convert(bytes);
-            print('비밀틀림 전');
-            if (user.pw == digest.toString()) {
-              Navigator.popAndPushNamed(context, '/main');
-            } else {
-              makeDialog('비밀번호가 틀립니다');
-            }
-          });
-        }
-      });
-    }
   }
 
   @override
@@ -110,9 +73,7 @@ class _LoginScreen extends State<LoginScreen>
       ),
       resizeToAvoidBottomInset: false,
       body: Get.find<LoginController>().box == true
-          ? Center(
-              child: Text('login 되었습니다.'),
-            )
+          ? ProfileScreen()
           : SingleChildScrollView(
               child: Container(
                   padding: EdgeInsets.fromLTRB(20, 80, 20, 0),
@@ -183,14 +144,7 @@ class _LoginScreen extends State<LoginScreen>
                         ),
                         child: FlatButton(
                           onPressed: () {
-                            if (id == _idTextController.value.text &&
-                                pw == _pwTextController.value.text) {
-                              Get.find<LoginController>().inLogin();
-                              Navigator.of(context).pushNamedAndRemoveUntil(
-                                  '/main', (route) => false);
-                            } else {
-                              print("틀렸슴");
-                            }
+                            _check();
                           },
                           child: Text(
                             '로그인',

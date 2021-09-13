@@ -8,6 +8,7 @@ class FreeScreen extends StatefulWidget {
 }
 
 class _FreeScreen extends State<FreeScreen> {
+  var refreshKey = GlobalKey<RefreshIndicatorState>();
   late FirebaseDatabase _database;
   var reference;
   String _databaseURL = 'https://comunity-8b9e7-default-rtdb.firebaseio.com/';
@@ -15,7 +16,6 @@ class _FreeScreen extends State<FreeScreen> {
 
   late var mainText = []..length = 500;
   late var createTime = []..length = 500;
-  var refreshKey = GlobalKey<RefreshIndicatorState>();
 
   //List<String> _mainlist = [];
   int i = 0;
@@ -26,7 +26,16 @@ class _FreeScreen extends State<FreeScreen> {
 
     _database = FirebaseDatabase(databaseURL: _databaseURL);
     reference = _database.reference();
+
+    refreshList();
+  }
+
+  Future<Null> refreshList() async {
+    refreshKey.currentState?.show(atTop: false);
+    await Future.delayed(Duration(seconds: 0)); //thread sleep 같은 역할을 함.
+    //새로운 정보를 그려내는 곳
     _dataList();
+    return null;
   }
 
 //title.iterator.moveNext()
@@ -35,7 +44,11 @@ class _FreeScreen extends State<FreeScreen> {
     return title.first == null
         ? Center(
             child: Center(child: Center(child: CircularProgressIndicator())))
-        : _listTile();
+        : RefreshIndicator(
+            key: refreshKey,
+            child: _listTile(),
+            onRefresh: refreshList,
+          );
   }
 
   Widget _listTile() {
@@ -64,28 +77,19 @@ class _FreeScreen extends State<FreeScreen> {
 
   Future<void> _dataList() async {
     await reference.child('자유게시판').once().then((DataSnapshot snapshot) {
-      print(snapshot.value);
-      if (snapshot.value == null) {
-        print(title);
-        return;
-      }
-
       snapshot.value.forEach((key, values) {
-        print('key값:$values');
-        setState(() {
-          if (title.length >= i) {
-            print(values['title']);
-            title[i] = values['title'];
-            print('${title[i]}');
-            print(values['mainText']);
-            mainText[i] = values['mainText'];
-            print(values['createTime']);
-            createTime[i] = values['createTime'].toString().substring(11, 19);
-            i = i + 1;
-          } else {
-            return;
-          }
-        });
+        if (this.mounted) {
+          setState(() {
+            if (title.length >= i) {
+              title[i] = values['title'];
+              mainText[i] = values['mainText'];
+              createTime[i] = values['createTime'].toString().substring(11, 19);
+              i = i + 1;
+            } else {
+              return;
+            }
+          });
+        }
       });
     });
   }

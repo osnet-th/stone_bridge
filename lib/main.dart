@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:stone_bridge_app/camera/camera.dart';
 
 //스톤브릿지
 import 'package:stone_bridge_app/screen/categoryScreen.dart';
@@ -51,7 +52,6 @@ class _StoneBridgeState extends State<StoneBridge> {
     SearchScreen(),
     HomeScreen(),
     CommunityScreen(),
-    ProfileScreen(),
   ];
 
   @override
@@ -111,10 +111,6 @@ class _StoneBridgeState extends State<StoneBridge> {
           BottomNavigationBarItem(
             label: '커뮤니티',
             icon: FaIcon(FontAwesomeIcons.shoppingCart),
-          ),
-          BottomNavigationBarItem(
-            label: '내정보',
-            icon: FaIcon(FontAwesomeIcons.cog),
           ),
         ],
       ),

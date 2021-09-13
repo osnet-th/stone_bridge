@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:get/get.dart';
 import 'package:group_button/group_button.dart';
 import 'package:stone_bridge_app/login_state/user.dart';
 
@@ -22,10 +23,10 @@ class _SignPage extends State<SignPage> {
   late TextEditingController _pwCheckTextController;
   late TextEditingController _schoolTextController;
   late TextEditingController _nameTextController;
-  var _isCheckGrade = [false, false, false, false];
+
   var _checkGrade = ['초등학생', '중학생', '고등학생', '대학생'];
   String _grade = '';
-  var _isCheckService = [false, false, false, false, false];
+
   @override
   void initState() {
     super.initState();
@@ -142,9 +143,15 @@ class _SignPage extends State<SignPage> {
                       child: FlatButton(
                         onPressed: () {
                           reference.child(_idTextController.value.text).set({
-                            'name': 'Yashwant Kumar',
-                            'description': 'Senior Software Engineer'
+                            'name': _nameTextController.value.text.toString(),
+                            'id': _idTextController.value.text.toString(),
+                            'grade': _grade,
+                            'school':
+                                _schoolTextController.value.text.toString(),
+                            'pw': _pwTextController.value.text.toString(),
+                            'createTime': DateTime.now().toIso8601String(),
                           });
+                          Get.back();
                         },
                         child: Text(
                           '회원가입',
