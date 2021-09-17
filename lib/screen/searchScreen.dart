@@ -31,6 +31,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Padding(
       padding: EdgeInsets.all(15),
       child: TextField(
+        textInputAction: TextInputAction.go,
         decoration: InputDecoration(
           border: OutlineInputBorder(),
           labelText: '검색',

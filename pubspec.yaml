@@ -47,8 +47,9 @@ dependencies:
   # 객체 인식
   sqflite: ^2.0.0+4
   tflite: ^1.1.2
-  camera: ^0.9.2+2
+
   image_picker: ^0.8.4
+  camera_camera: ^2.0.2
 
   # 통신, 제공자 
   http: ^0.13.3

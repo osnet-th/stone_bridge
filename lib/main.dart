@@ -1,6 +1,6 @@
 //flutter
 import 'dart:async';
-import 'package:camera/camera.dart';
+import 'package:camera_camera/camera_camera.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -13,13 +13,17 @@ import 'package:stone_bridge_app/screen/categoryScreen.dart';
 import 'package:stone_bridge_app/screen/communityScreen.dart';
 import 'package:stone_bridge_app/screen/homeScreen.dart';
 import 'package:stone_bridge_app/screen/loginScreen.dart';
-import 'package:stone_bridge_app/screen/profileScreen.dart';
+
 import 'package:stone_bridge_app/screen/searchScreen.dart';
 
+import 'camera/image_detecrtion.dart';
+
+late List<CameraDescription> cameras;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await GetStorage.init();
+  cameras = await availableCameras();
   runApp(new MyApp());
 }
 
@@ -35,7 +39,10 @@ class MyApp extends StatelessWidget {
         unselectedWidgetColor: Color(0xFF0DCE9F),
       ),
       initialRoute: '/main',
-      routes: {'/main': (context) => StoneBridge()},
+      routes: {
+        '/main': (context) => StoneBridge(),
+        '/camera': (context) => TfliteHome()
+      },
     );
   }
 }
@@ -69,7 +76,11 @@ class _StoneBridgeState extends State<StoneBridge> {
           onPressed: () => Navigator.of(context).pushReplacementNamed('/main'),
         ),
         actions: [
-          IconButton(icon: FaIcon(FontAwesomeIcons.camera), onPressed: () {}),
+          IconButton(
+              icon: FaIcon(FontAwesomeIcons.camera),
+              onPressed: () {
+                Navigator.of(context).pushNamed('/camera');
+              }),
           IconButton(
             icon: FaIcon(FontAwesomeIcons.user),
             onPressed: () => Navigator.push(context,

@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:group_button/group_button.dart';
 import 'package:stone_bridge_app/login_state/user.dart';
+import 'package:stone_bridge_app/screen/loginScreen.dart';
 
 class SignPage extends StatefulWidget {
   @override
@@ -142,16 +143,21 @@ class _SignPage extends State<SignPage> {
                       ),
                       child: FlatButton(
                         onPressed: () {
-                          reference.child(_idTextController.value.text).set({
-                            'name': _nameTextController.value.text.toString(),
-                            'id': _idTextController.value.text.toString(),
-                            'grade': _grade,
-                            'school':
-                                _schoolTextController.value.text.toString(),
-                            'pw': _pwTextController.value.text.toString(),
-                            'createTime': DateTime.now().toIso8601String(),
-                          });
-                          Get.back();
+                          if (_pwTextController.value.text ==
+                              _pwCheckTextController.value.text) {
+                            reference.child(_idTextController.value.text).set({
+                              'name': _nameTextController.value.text.toString(),
+                              'id': _idTextController.value.text.toString(),
+                              'grade': _grade,
+                              'school':
+                                  _schoolTextController.value.text.toString(),
+                              'pw': _pwTextController.value.text.toString(),
+                              'createTime': DateTime.now().toIso8601String(),
+                            });
+                            Get.back();
+                          } else {
+                            makeDialog('비밀번호가 다릅니다.');
+                          }
                         },
                         child: Text(
                           '회원가입',

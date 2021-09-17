@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
+import 'package:camera_camera/camera_camera.dart';
 import 'package:tflite/tflite.dart';
 import 'dart:math' as math;
 
