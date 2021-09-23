@@ -1,109 +1,189 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:camera_camera/camera_camera.dart';
 import 'package:tflite/tflite.dart';
-import 'dart:math' as math;
+import 'package:image_picker/image_picker.dart';
 
-const String ssd = "SSD MobileNet";
-const String yolo = "Tiny YOLOv2";
-
-typedef void Callback(List<dynamic> list, int h, int w);
-
-class Camera extends StatefulWidget {
-  final List<CameraDescription> cameras;
-  final Callback setRecognitions;
-  final String model;
-
-  Camera(this.cameras, this.model, this.setRecognitions);
-
+class Home extends StatefulWidget {
   @override
-  _CameraState createState() => new _CameraState();
+  _HomeState createState() => _HomeState();
 }
 
-class _CameraState extends State<Camera> {
-  late CameraController? controller;
-  bool isDetecting = false;
+class _HomeState extends State<Home> {
+  bool _loading = true;
+  late File _image;
+  late List _output;
+  final picker = ImagePicker(); //allows us to pick image from gallery or camera
 
   @override
   void initState() {
+    //initS is the first function that is executed by default when this class is called
     super.initState();
-    _cameraState();
-  }
-
-  Future<void> _cameraState() async {
-    if (widget.cameras == null || widget.cameras.length < 1) {
-      print('No camera is found');
-    } else
-      await {
-        controller = new CameraController(
-          widget.cameras[0],
-          ResolutionPreset.medium,
-        ),
-        controller!.initialize().then((_) {
-          if (!mounted) {
-            return;
-          }
-          setState(() {});
-
-          controller!.startImageStream((CameraImage img) {
-            if (!isDetecting) {
-              isDetecting = true;
-
-              int startTime = new DateTime.now().millisecondsSinceEpoch;
-
-              Tflite.detectObjectOnFrame(
-                bytesList: img.planes.map((plane) {
-                  return plane.bytes;
-                }).toList(),
-                model: widget.model == yolo ? "YOLO" : "SSDMobileNet",
-                imageHeight: img.height,
-                imageWidth: img.width,
-                imageMean: widget.model == yolo ? 0 : 127.5,
-                imageStd: widget.model == yolo ? 255.0 : 127.5,
-                numResultsPerClass: 1,
-                threshold: widget.model == yolo ? 0.2 : 0.4,
-              ).then((recognitions) {
-                // print(recognitions);
-
-                int endTime = new DateTime.now().millisecondsSinceEpoch;
-                print("Detection took ${endTime - startTime}");
-
-                widget.setRecognitions(recognitions!, img.height, img.width);
-
-                isDetecting = false;
-              });
-            }
-          });
-        })
-      };
+    loadModel().then((value) {
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    //dis function disposes and clears our memory
     super.dispose();
-    controller!.dispose();
+    Tflite.close();
+  }
+
+  classifyImage(File image) async {
+    //this function runs the model on the image
+    var output = await Tflite.runModelOnImage(
+      path: image.path,
+      numResults:
+          5, //the amout of categories our neural network can predict (here no. of animals)
+      threshold: 0.5,
+      imageMean: 127.5,
+      imageStd: 127.5,
+    );
+    setState(() {
+      _output = output!;
+      _loading = false;
+    });
+  }
+
+  loadModel() async {
+    //this function loads our model
+    await Tflite.loadModel(
+      model: 'assets/model_unquant.tflite',
+      labels: 'assets/labels.txt',
+    );
+  }
+
+  pickImage() async {
+    //this function to grab the image from camera
+    var image = await picker.pickImage(source: ImageSource.camera);
+    if (image == null) return null;
+
+    setState(() {
+      _image = File(image.path);
+    });
+    classifyImage(_image);
+  }
+
+  pickGalleryImage() async {
+    //this function to grab the image from gallery
+    var image = await picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return null;
+
+    setState(() {
+      _image = File(image.path);
+    });
+    classifyImage(_image);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (controller == null || !controller!.value.isInitialized) {
-      return Container();
-    }
-
-    var tmp = MediaQuery.of(context).size;
-    var screenH = math.max(tmp.height, tmp.width);
-    var screenW = math.min(tmp.height, tmp.width);
-    tmp = controller!.value.previewSize!;
-    var previewH = math.max(tmp.height, tmp.width);
-    var previewW = math.min(tmp.height, tmp.width);
-    var screenRatio = screenH / screenW;
-    var previewRatio = previewH / previewW;
-
-    return OverflowBox(
-      maxHeight:
-          screenRatio > previewRatio ? screenH : screenW / previewW * previewH,
-      maxWidth:
-          screenRatio > previewRatio ? screenH / previewH * previewW : screenW,
-      child: CameraPreview(controller!),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xFF0DCE9F),
+        centerTitle: true,
+        title: Text('스톤브릿지'),
+      ),
+      body: Container(
+        color: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 35, vertical: 50),
+        child: Container(
+          alignment: Alignment.center,
+          padding: EdgeInsets.all(30),
+          decoration: BoxDecoration(
+            color: Color(0xFF0DCE9F),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: Center(
+                  child: _loading == true
+                      ? null //show nothing if no picture selected
+                      : Container(
+                          child: Column(
+                            children: [
+                              Container(
+                                height: MediaQuery.of(context).size.width * 0.5,
+                                width: MediaQuery.of(context).size.width * 0.5,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(30),
+                                  child: Image.file(
+                                    _image,
+                                    fit: BoxFit.fill,
+                                  ),
+                                ),
+                              ),
+                              Divider(
+                                height: 25,
+                                thickness: 1,
+                              ),
+                              // ignore: unnecessary_null_comparison
+                              _output != null
+                                  ? Text(
+                                      'The equip is: ${_output[0]['label']}',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    )
+                                  : Container(),
+                              Divider(
+                                height: 25,
+                                thickness: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                ),
+              ),
+              Container(
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: pickImage,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width - 200,
+                        alignment: Alignment.center,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 24, vertical: 17),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          '사진 찍기',
+                          style: TextStyle(color: Colors.black, fontSize: 20),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    GestureDetector(
+                      onTap: pickGalleryImage,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width - 200,
+                        alignment: Alignment.center,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 24, vertical: 17),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          '사진 고르기',
+                          style: TextStyle(color: Colors.black, fontSize: 20),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
