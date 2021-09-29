@@ -16,6 +16,8 @@ import 'package:stone_bridge_app/screen/loginScreen.dart';
 
 import 'package:stone_bridge_app/screen/searchScreen.dart';
 
+import 'Lecture/lecture_slider.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -37,7 +39,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/main',
       routes: {
-        '/main': (context) => StoneBridge(),
+        '/main': (context) => LectureS(),
       },
     );
   }
